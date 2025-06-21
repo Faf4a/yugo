@@ -2,7 +2,6 @@ import { Message, ComponentTypes, MessageFlags } from "oceanic.js";
 import { Command } from "~command";
 import type { YugoClient } from "index";
 
-// Helper to build the help header section
 function buildHelpHeader(msg: Message, excludeHints = false) {
   return {
     type: ComponentTypes.CONTAINER,
@@ -18,8 +17,9 @@ function buildHelpHeader(msg: Message, excludeHints = false) {
         components: [
           {
             type: ComponentTypes.TEXT_DISPLAY,
-            content:
-              `## Help Command\n\nUse \`a!help <command>\` to get help for a specific command. ${!excludeHints ? "\n\n-# 👑 owner only\n-# 🛡 mod only" : ""}`,
+            content: `## Help Command\n\nUse \`a!help <command>\` to get help for a specific command. ${
+              !excludeHints ? "\n\n-# 👑 owner only\n-# 🛡 mod only" : ""
+            }`,
           },
         ],
       },
@@ -35,11 +35,7 @@ function buildCommandList(msg: Message, commands: Map<string, Command>) {
         type: ComponentTypes.TEXT_DISPLAY,
         content: Array.from(commands.values())
           .map((cmd: Command) => {
-            let prefix = cmd.ownerOnly
-              ? "👑"
-              : cmd.modOnly
-              ? "🛡"
-              : "<:space:908036292900687922>";
+            let prefix = cmd.ownerOnly ? "👑" : cmd.modOnly ? "🛡" : "<:space:908036292900687922>";
             let desc = `a!${cmd.name}`;
             return `${prefix} \`${desc}\`: ${cmd.description}`;
           })
@@ -49,7 +45,6 @@ function buildCommandList(msg: Message, commands: Map<string, Command>) {
   };
 }
 
-// Helper to build the details for a specific command
 function buildCommandDetail(cmd: Command) {
   return {
     type: ComponentTypes.CONTAINER,
@@ -64,19 +59,6 @@ function buildCommandDetail(cmd: Command) {
   };
 }
 
-// Helper to build the "not found" message
-function buildNotFound() {
-  return {
-    type: ComponentTypes.CONTAINER,
-    components: [
-      {
-        type: ComponentTypes.TEXT_DISPLAY,
-        content: "-# The command you searched for doesn't exist!",
-      },
-    ],
-  };
-}
-
 const command: Command = {
   name: "help",
   description: "Get a list of commands or help for a specific command.",
@@ -86,7 +68,7 @@ const command: Command = {
   async execute(msg: Message) {
     let arg = msg.content?.trim();
 
-    const commands = (msg.client as YugoClient).commands;
+    const commands = (msg.client as YugoClient).commands.cmds;
 
     if (arg) {
       const cmd = commands.get(arg);
@@ -97,10 +79,16 @@ const command: Command = {
             // @ts-ignore
             buildHelpHeader(msg),
             // @ts-ignore
-
             buildCommandList(msg, commands),
-            // @ts-ignore
-            buildNotFound(),
+            {
+              type: ComponentTypes.CONTAINER,
+              components: [
+                {
+                  type: ComponentTypes.TEXT_DISPLAY,
+                  content: "-# The command you searched for doesn't exist!",
+                },
+              ],
+            },
           ],
         });
         return;

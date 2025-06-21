@@ -4,18 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node -r tsconfig-paths/register src/index.ts"
+    "build": "tsc && tsc-alias",
+    "start": "node -r tsconfig-paths/register build/index.js",
+    "watch:tsc": "tsc --watch",
+    "watch:alias": "nodemon -e js --watch build --exec \"tsc-alias\"",
+    "dev": "concurrently \"pnpm watch:tsc\" \"pnpm watch:alias\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.11.0",
   "dependencies": {
+    "@google/genai": "^1.4.0",
+    "algoliasearch": "^5.27.0",
     "oceanic.js": "^1.12.0",
     "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16"
   }
 }

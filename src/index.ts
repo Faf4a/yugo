@@ -2,12 +2,17 @@ import "./misc/prototypes";
 
 import { Client, Message as OceanicMessage } from "oceanic.js";
 import { DISCORD_TOKEN } from "./env";
-import { loadCommands } from "./command";
+import { CommandHandler } from "./command";
 import type { Command } from "./command";
 
 export interface YugoClient extends Client {
   prefix: string;
-  commands: Map<string, any>;
+  commands: {
+    cmds: Map<string, any>;
+    interaction: Map<string, any>;
+    alwaysRespond: Map<string, any>;
+    [key: string]: any;
+  };
   config: {
     ownerId: string;
     moderationWhitelist: string[];
@@ -32,11 +37,17 @@ export const Yugo = new Client({
   },
 }) as YugoClient;
 
-Yugo.prefix = "a!";
-Yugo.commands = new Map<string, any>();
+Yugo.prefix = "!";
+Yugo.commands = {
+  cmds: new Map<string, any>(),
+  interaction: new Map<string, any>(),
+  alwaysRespond: new Map<string, any>(),
+};
+
 Yugo.config = {
   ownerId: "",
   moderationWhitelist: [
+    "773353342415929344", // Admin
     "1285267083789078539", // Moderator
     "1182044186262900786", // Community Manager
     "1182041892607758396", // Core Developer
@@ -47,15 +58,12 @@ Yugo.once("ready", async () => {
   console.log("Hello World");
   console.log("Waiting for commands..");
 
-  // Fetch ownerId from Discord API
   await Yugo.rest.oauth
     .getApplication()
-    .then(
-      (app) =>
-        (Yugo.config.ownerId = app.team?.owner?.id || app.owner?.id || "")
-    );
+    .then((app) => (Yugo.config.ownerId = app.team?.owner?.id || app.owner?.id || ""));
 
-  await loadCommands();
+  const commandHandler = new CommandHandler();
+  await commandHandler.loadCommands();
 
   console.log(`Ready! Logged in as ${Yugo.user.username} (${Yugo.user.id})`);
 });
@@ -68,7 +76,12 @@ async function handleCreateMessage(msg: OceanicMessage) {
 
   const originalMessage = msg.content.toLowerCase();
 
-  if (![...Yugo.prefix].some((p) => originalMessage.startsWith(p))) return;
+  Yugo.commands.alwaysRespond.forEach((command) => {
+    const args = originalMessage.split(/\s+/);
+    command.execute(msg, { args, isAlwaysResponse: true });
+  });
+
+  if (![...Yugo.prefix].some((p) => originalMessage.toLowerCase().startsWith(p))) return;
 
   const prefix = Yugo.prefix;
   if (!msg.content.startsWith(prefix)) return;
@@ -79,7 +92,7 @@ async function handleCreateMessage(msg: OceanicMessage) {
 
   const commandName = args.shift()?.toLowerCase();
 
-  const command: Command = Yugo.commands.get(commandName as string);
+  const command: Command = Yugo.commands.cmds.get(commandName as string);
   if (!command) return msg.createReaction("❓");
 
   if (command.ownerOnly && msg.author.id !== Yugo.config.ownerId) {
@@ -88,7 +101,7 @@ async function handleCreateMessage(msg: OceanicMessage) {
 
   if (
     command.modOnly &&
-    !msg.member.roles.some((r) => r in Yugo.config.moderationWhitelist)
+    !msg.member.roles.some((r) => Yugo.config.moderationWhitelist.includes(r))
   ) {
     return msg.createReaction("🚫");
   }
@@ -97,7 +110,7 @@ async function handleCreateMessage(msg: OceanicMessage) {
   msg.content = content.replace(command.name, "").trim();
 
   try {
-    await command.execute(msg, args);
+    await command.execute(msg, { args });
   } catch (error: Error | any) {
     console.error(`Something exploded in ${commandName}:`, error.message);
     msg.createReaction("⚠️");

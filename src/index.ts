@@ -4,6 +4,7 @@ import { Client, Message as OceanicMessage } from "oceanic.js";
 import { DISCORD_TOKEN } from "./env";
 import { CommandHandler } from "./command";
 import type { Command } from "./command";
+import database from "~misc/db";
 
 export interface YugoClient extends Client {
   prefix: string;
@@ -64,6 +65,8 @@ Yugo.once("ready", async () => {
 
   const commandHandler = new CommandHandler();
   await commandHandler.loadCommands();
+
+  await database.start();
 
   console.log(`Ready! Logged in as ${Yugo.user.username} (${Yugo.user.id})`);
 });

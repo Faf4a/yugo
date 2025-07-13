@@ -91,11 +91,20 @@ async function handleCreateMessage(msg: OceanicMessage) {
   const content = msg.content.slice(prefix.length).trim();
 
   if (!content) return;
+
   const args = content.split(/\s+/);
 
-  const commandName = args.shift()?.toLowerCase();
-
-  const command: Command = Yugo.commands.cmds.get(commandName as string);
+  let commandName = args[0]?.toLowerCase() || "";
+  let multi = args.length > 1 ? `${args[0].toLowerCase()} ${args[1].toLowerCase()}` : "";
+  let command: Command | undefined = undefined;
+  if (multi && Yugo.commands.cmds.has(multi)) {
+    commandName = multi;
+    command = Yugo.commands.cmds.get(multi);
+    args.splice(0, 2);
+  } else {
+    command = Yugo.commands.cmds.get(commandName);
+    args.splice(0, 1);
+  }
   if (!command) return msg.createReaction("❓");
 
   if (command.ownerOnly && msg.author.id !== Yugo.config.ownerId) {

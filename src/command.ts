@@ -31,6 +31,7 @@ export class CommandHandler {
           try {
             const imported = await import(fullPath);
             const command = imported.default || imported;
+            if (!command.category) command.category = "Other";
             if (command.name && command.execute) {
               if (command.interaction) {
                 Yugo.commands.interaction.set(command.name, command);
@@ -96,6 +97,7 @@ export type Command = {
   name: string;
   description: string;
   usage?: string;
+  category?: "Hosting" | "Moderation" | "Utility" | "Other";
   ownerOnly?: boolean;
   modOnly?: boolean;
   alwaysRespond?: {

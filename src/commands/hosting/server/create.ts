@@ -18,16 +18,15 @@ const command: Command = {
       });
     }
 
-    /*
+    
     const DONATOR_ROLE_IDS = ["773353340674900029", "1251992565381857342", "773661503214583808"];
     const isDonator = member.roles.some((role: string) => DONATOR_ROLE_IDS.includes(role));
-    const { count: userCount } = database.getAllUsers();
-    if (userCount >= 20 && member.id !== "428188716641812481" && !isDonator) {
+    if (!isDonator) {
       return msg.reply({
-        content: `The limit of 20 free users/servers has been reached. Please try again later, you can bypass this by donating or boosting the server!`,
+        content: `Currently limited to Donators and Boosters, you know what you have to do ;9`,
       });
     }
-    */
+    
 
     if (args.length < 1) {
       return msg.reply({
@@ -49,7 +48,7 @@ const command: Command = {
       nest: 5,
       egg: 15,
       docker_image: "ghcr.io/zastinian/esdock:nodejs_20",
-      startup: "bash",
+      startup: '[[ ! -d .git && -n "${USERNAME}" && -n "${ACCESS_TOKEN}" && -n "${GIT_ADDRESS}" ]] && git clone -b "${BRANCH}" https://${USERNAME}:${ACCESS_TOKEN}@${GIT_ADDRESS#https://} repo; cd repo; [[ "${AUTO_UPDATE}" == "1" && -d .git ]] && git pull; [[ -n "${UNNODE_PACKAGES}" ]] && /usr/local/bin/npm uninstall ${UNNODE_PACKAGES}; [[ -f package.json ]] && /usr/local/bin/npm install; [[ -n "${NODE_PACKAGES}" ]] && /usr/local/bin/npm install ${NODE_PACKAGES}; eval "${COMMAND}"',
       environment: {
         startupscript: "index.js",
         packages: "aoi.js",

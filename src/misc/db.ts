@@ -35,7 +35,6 @@ class Database {
         `,
       )
       .run();
-    console.log("Database initialized.");
   }
 
   getUser(discordId: string) {
@@ -50,14 +49,6 @@ class Database {
       .run(discordId, pteroUserId, email, username);
   }
 
-  updateUser(discordId: string, pteroUserId: string, email: string, username: string) {
-    this.db
-      .prepare(
-        "UPDATE ptero_users SET ptero_user_id = ?, email = ?, username = ? WHERE discord_id = ?",
-      )
-      .run(pteroUserId, email, username, discordId);
-  }
-
   getServer(discordId: string) {
     return this.db.prepare("SELECT * FROM ptero_servers WHERE discord_id = ?").get(discordId);
   }
@@ -66,12 +57,6 @@ class Database {
     this.db
       .prepare("INSERT INTO ptero_servers (discord_id, ptero_server_id) VALUES (?, ?)")
       .run(discordId, pteroServerId);
-  }
-
-  updateServer(discordId: string, pteroServerId: string) {
-    this.db
-      .prepare("UPDATE ptero_servers SET ptero_server_id = ? WHERE discord_id = ?")
-      .run(pteroServerId, discordId);
   }
 
   deleteUser(discordId: string) {
@@ -88,6 +73,13 @@ class Database {
       count: users.length,
       list: users,
     };
+  }
+
+  execute(query: string, params: any[] = []) {
+    if (!query || typeof query !== "string") {
+      throw new Error("Expected a query string to execute.");
+    }
+    return this.db.prepare(query).run(...params);
   }
 
   close() {

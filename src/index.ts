@@ -2,8 +2,8 @@ import "./misc/prototypes";
 
 import { Client, Message as OceanicMessage } from "oceanic.js";
 import { DISCORD_TOKEN } from "./env";
-import { CommandHandler } from "./command";
-import type { Command } from "./command";
+import { CommandHandler, type Command } from "./command";
+import { EventHandler } from "./event";
 import database from "~misc/db";
 
 export interface YugoClient extends Client {
@@ -34,7 +34,7 @@ export const Yugo = new Client({
     everyone: false,
     repliedUser: true,
     roles: false,
-    users: false,
+    users: true,
   },
 }) as YugoClient;
 
@@ -63,10 +63,13 @@ Yugo.once("ready", async () => {
     .getApplication()
     .then((app) => (Yugo.config.ownerId = app.team?.owner?.id || app.owner?.id || ""));
 
+  const eventHandler = new EventHandler();
+  await eventHandler.loadEvents();
+
   const commandHandler = new CommandHandler();
   await commandHandler.loadCommands();
 
-  await database.start();
+  database.start();
 
   console.log(`Ready! Logged in as ${Yugo.user.username} (${Yugo.user.id})`);
 });

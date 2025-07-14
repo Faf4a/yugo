@@ -43,8 +43,7 @@ const command: Command = {
 
     const payload = {
       name: msg.content,
-      // @ts-ignore
-      user: Number(user.ptero_user_id),
+      user: Number((user as any).ptero_user_id),
       nest: 5,
       egg: 15,
       docker_image: "ghcr.io/zastinian/esdock:nodejs_20",
@@ -108,7 +107,7 @@ const command: Command = {
     });
 
     let pollCount = 0;
-    const maxPolls = 24;
+    const maxPolls = 5;
     const poll = setInterval(async () => {
       pollCount++;
       try {
@@ -125,8 +124,6 @@ const command: Command = {
         );
         const stateData = await stateRes.json();
         const installed = stateData?.attributes?.container?.installed;
-
-        console.log("server data:", stateData);
 
         if (installed) {
           await statusMsg.edit({
@@ -192,7 +189,7 @@ const command: Command = {
         });
         clearInterval(poll);
       }
-    }, 5000);
+    }, 10000);
   },
 };
 

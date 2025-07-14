@@ -23,6 +23,7 @@ export class EventHandler {
       if (!entry.name.endsWith(".ts") && !entry.name.endsWith(".js")) continue;
       const imported = await import(join(this.eventsPath, entry.name));
       const event: Event = imported.default || imported;
+      console.log(`Loaded event: ${event.name}`);
       if (!event || event.type !== "event" || !event.name || !event.execute) continue;
       if (event.once) {
         Yugo.once(event.name, (...args: any[]) => event.execute(...args));
